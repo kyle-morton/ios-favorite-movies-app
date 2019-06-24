@@ -15,6 +15,26 @@ class SearchViewController: UIViewController {
     
     @IBAction func search(sender: UIButton) {
         print("Searching...")
+        let searchTerm = searchText.text
+        if searchTerm!.count > 2 {
+            retrieveMoviesByTerm(searchTerm: searchTerm!)
+        }
+    }
+    
+    func retrieveMoviesByTerm(searchTerm: String) {
+        let url = "https://fake-movie-database-api.herokuapp.com/api?s=\(searchTerm)&type=movie&r=json"
+        
+        HttpHandler.getJson(urlString: url, completionHandler: parseDataIntoMovies)
+    }
+    
+    func parseDataIntoMovies(data: Data?) -> Void {
+        if let data = data {
+            let object = JSONParser.parse(data: data)
+            
+            if let object = object {
+//                self.searchRes
+            }
+        }
     }
     
     override func viewDidLoad() {
