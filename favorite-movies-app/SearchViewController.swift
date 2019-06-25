@@ -8,10 +8,12 @@
 
 import UIKit
 
-class SearchViewController: UIViewController {
+class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet var searchText: UITextField!
     @IBOutlet var tableView: UITableView!
+    
+    var searchResults: [Movie] = []
     
     @IBAction func search(sender: UIButton) {
         print("Searching...")
@@ -32,9 +34,49 @@ class SearchViewController: UIViewController {
             let object = JSONParser.parse(data: data)
             
             if let object = object {
+                self.searchResults = MovieDataProcessor.mapJsonToMovies(object: object, moviesKey: "Search")
 //                self.searchRes
+                DispatchQueue.main.async{
+                    self.tableView.reloadData()
+                }
             }
         }
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return searchResults.count
+    }
+    
+    /**
+     * foreach cell in movietableView, bind to values from same indexed element in favoriteMovies
+     */
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let movieCell = tableView.dequeueReusableCell(withIdentifier: "customcell", for: indexPath) as! CustomTableViewCell
+        
+        let index: Int = indexPath.row
+        
+        movieCell.movieTitle.text = searchResults[index].title
+        movieCell.movieYear.text = searchResults[index].year
+        displayMovieImage(index: index, movieCell: movieCell)
+        
+        return movieCell
+    }
+    
+    func displayMovieImage(index: Int, movieCell: CustomTableViewCell) {
+        let url = (URL(string: searchResults[index].imageUrl)?.absoluteURL)!
+        
+        URLSession.shared.dataTask(with: url, completionHandler: { (data, response, error) -> Void in
+            if error != nil {
+                print(error!)
+                return
+            }
+            
+            DispatchQueue.main.async {
+                let image = UIImage(data: data!)
+                movieCell.movieImage.image = image
+            }
+            
+        }).resume()
     }
     
     override func viewDidLoad() {
